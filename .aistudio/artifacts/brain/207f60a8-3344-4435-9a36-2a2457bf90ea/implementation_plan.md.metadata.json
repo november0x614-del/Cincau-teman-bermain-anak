@@ -1,0 +1,6 @@
+{
+  "summary":  "Revised Immersive 2D Sliding World: Removed door interactions. Navigation is now triggered by context-aware buttons ('Pergi ke rumah' / 'Pergi ke luar ruangan'). Cincau stays fixed and persistent in the foreground with a bounce effect, while the entire world (Background SVGs + UI) slides behind it.",
+  "updatedAt":  "2026-10-10T21:20:35.087730350Z",
+  "requestFeedback":  true,
+  "userFacing":  true
+}

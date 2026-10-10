@@ -1,0 +1,291 @@
+import { DailyMission, EducationalGame } from '../types';
+
+export const INITIAL_MISSIONS: DailyMission[] = [
+  // FASE A (Kelas 1 - 2 SD)
+  {
+    id: 'fase-a-1',
+    title: 'Membaca Suku Kata Pintar',
+    subject: 'Bahasa Indonesia (Fase A)',
+    phase: 'Fase A',
+    description: 'Bantu Cincau menyusun suku kata nama hewan khas Indonesia!',
+    badge: '📖 Membaca',
+    rewardFood: 1,
+    rewardStars: 5,
+    questions: [
+      {
+        question: 'Hewan purba khas Pulau Rinca dan Komodo ini namanya diawali suku kata "KO-MO-..."?',
+        options: ['DO', 'KO', 'RO', 'TO'],
+        correctIndex: 0,
+        explanation: 'Benar sekali! KO-MO-DO adalah kadal raksasa yang hidup di Nusa Tenggara Timur! 🦎',
+      },
+      {
+        question: 'Burung yang bisa bernyanyi merdu di pepohonan: "KU-TUT-..."?',
+        options: ['UT', 'AN', 'UK', 'LI'],
+        correctIndex: 1,
+        explanation: 'Hebat! Burung perkutut sering bernyanyi di pagi hari yang cerah! 🐦',
+      },
+    ],
+  },
+  {
+    id: 'fase-a-2',
+    title: 'Hitung Kelereng Cincau',
+    subject: 'Matematika (Fase A)',
+    phase: 'Fase A',
+    description: 'Hitung jumlah kelereng warna-warni yang dikumpulkan Cincau.',
+    badge: '🔢 Berhitung',
+    rewardFood: 1,
+    rewardStars: 5,
+    questions: [
+      {
+        question: 'Cincau punya 4 butir kelereng hijau di toples, lalu Budi memberi 3 butir kelereng biru. Berapa kelereng Cincau sekarang?',
+        options: ['6 butir', '7 butir', '8 butir', '9 butir'],
+        correctIndex: 1,
+        explanation: 'Tepat! 4 + 3 = 7 butir kelereng cantik! 🟢🔵',
+      },
+      {
+        question: 'Ada 10 bintang di langit, lalu 2 bintang tertutup awan mendung. Berapa bintang yang masih terlihat?',
+        options: ['7 bintang', '8 bintang', '9 bintang', '12 bintang'],
+        correctIndex: 1,
+        explanation: 'Keren! 10 - 2 = 8 bintang yang tetap bersinar terang! ⭐',
+      },
+    ],
+  },
+  {
+    id: 'fase-a-3',
+    title: 'Kenali Tanaman Obat Sekitar',
+    subject: 'IPAS (Fase A)',
+    phase: 'Fase A',
+    description: 'Pelajari tanaman herbal bermanfaat yang ada di pekarangan rumah.',
+    badge: '🌿 Sains & Alam',
+    rewardFood: 1,
+    rewardStars: 5,
+    questions: [
+      {
+        question: 'Tanaman berumbi kuning harum yang biasa dibuat jamu tradisional oleh Ibu bernama apa?',
+        options: ['Kunyit', 'Mawar', 'Bambu', 'Kaktus'],
+        correctIndex: 0,
+        explanation: 'Wah pintar! Kunyit berwarna kuning cerah dan sangat sehat untuk perut kita! 🫚',
+      },
+      {
+        question: 'Tumbuhan membutuhkan dua hal penting ini dari alam untuk tumbuh subur setiap hari:',
+        options: ['Es krim & cokelat', 'Sinar matahari & air', 'Lampu & kasur', 'Batu & plastik'],
+        correctIndex: 1,
+        explanation: 'Luar biasa! Daun hijau menggunakan sinar mentari dan air segar untuk memasak makanannya! ☀️🌱',
+      },
+    ],
+  },
+
+  // FASE B (Kelas 3 - 4 SD)
+  {
+    id: 'fase-b-1',
+    title: 'Jelajah Peta Pulau Nusantara',
+    subject: 'IPAS (Fase B)',
+    phase: 'Fase B',
+    description: 'Mengenal 5 pulau besar di Indonesia dan keunikan alamnya.',
+    badge: '🗺️ Geografi',
+    rewardFood: 1,
+    rewardStars: 5,
+    questions: [
+      {
+        question: 'Pulau dengan bentuk menyerupai huruf "K" di peta Indonesia adalah pulau apa?',
+        options: ['Sumatera', 'Sulawesi', 'Jawa', 'Papua'],
+        correctIndex: 1,
+        explanation: 'Tepat! Pulau Sulawesi memiliki 4 jazirah semenanjung yang berbentuk mirip huruf K! 🏝️',
+      },
+      {
+        question: 'Ibu Kota Nusantara (IKN) berlokasi di pulau terbesar kedua di Indonesia yaitu pulau...?',
+        options: ['Kalimantan', 'Bali', 'Lombok', 'Madura'],
+        correctIndex: 0,
+        explanation: 'Benar! Kalimantan terkenal dengan hutan hujan tropis paru-paru dunia! 🌳',
+      },
+    ],
+  },
+  {
+    id: 'fase-b-2',
+    title: 'Jajan Pasar & Uang Pecahan Rupiah',
+    subject: 'Matematika (Fase B)',
+    phase: 'Fase B',
+    description: 'Bantu Cincau menghitung uang belanja dan kembalian jajan pasar!',
+    badge: '💰 Nilai Mata Uang',
+    rewardFood: 1,
+    rewardStars: 5,
+    questions: [
+      {
+        question: 'Cincau membeli kue klepon seharga Rp 4.000 dan membayar dengan selembar uang Rp 10.000. Berapa uang kembaliannya?',
+        options: ['Rp 5.000', 'Rp 6.000', 'Rp 7.000', 'Rp 4.000'],
+        correctIndex: 1,
+        explanation: 'Cerdas! Rp 10.000 - Rp 4.000 = Rp 6.000 kembaliannya! 🍡',
+      },
+      {
+        question: 'Berapa lembar uang Rp 2.000 yang dibutuhkan agar nilainya sama dengan selembar uang Rp 10.000?',
+        options: ['3 lembar', '4 lembar', '5 lembar', '6 lembar'],
+        correctIndex: 2,
+        explanation: 'Mantap! 5 lembar × Rp 2.000 = Rp 10.000! 💵',
+      },
+    ],
+  },
+  {
+    id: 'fase-b-3',
+    title: 'Siklus Air & Petualangan Hujan',
+    subject: 'IPAS Sains (Fase B)',
+    phase: 'Fase B',
+    description: 'Cari tahu bagaimana tetesan air laut berubah menjadi awan dan hujan.',
+    badge: '🌧️ Sains Alam',
+    rewardFood: 1,
+    rewardStars: 5,
+    questions: [
+      {
+        question: 'Air laut menguap naik ke angkasa karena terkena panas dari apa?',
+        options: ['Api unggun', 'Matahari', 'Bulan', 'Kipas angin'],
+        correctIndex: 1,
+        explanation: 'Tepat! Sinar matahari memanaskan air hingga menguap menjadi awan putih tebal (evaporasi)! ☀️💧',
+      },
+      {
+        question: 'Uap air yang mendingin dan berkumpul di langit membentuk apa sebelum jatuh sebagai hujan?',
+        options: ['Pelangi', 'Awan', 'Petir', 'Salju'],
+        correctIndex: 1,
+        explanation: 'Benar! Kumpulan butiran air kecil di langit itulah awan mendung! ☁️',
+      },
+    ],
+  },
+
+  // FASE C (Kelas 5 - 6 SD)
+  {
+    id: 'fase-c-1',
+    title: 'Tata Surya & Planet Penjelajah',
+    subject: 'IPAS (Fase C)',
+    phase: 'Fase C',
+    description: 'Menjelajahi 8 planet yang mengelilingi matahari dalam galaksi bimasakti.',
+    badge: '🪐 Astronomi',
+    rewardFood: 1,
+    rewardStars: 5,
+    questions: [
+      {
+        question: 'Planet terbesar dalam tata surya kita yang memiliki cincin tipis dan bintik merah raksasa adalah...?',
+        options: ['Mars', 'Jupiter', 'Venus', 'Saturnus'],
+        correctIndex: 1,
+        explanation: 'Hebat! Jupiter adalah planet raksasa gas terbesar di tata surya! 🔭',
+      },
+      {
+        question: 'Planet yang dikenal sebagai "Planet Merah" karena tanahnya kaya akan zat besi berkarat adalah...?',
+        options: ['Merkurius', 'Mars', 'Neptunus', 'Bumi'],
+        correctIndex: 1,
+        explanation: 'Keren! Planet Mars tampak kemerahan saat dilihat dengan teleskop! 🔴',
+      },
+    ],
+  },
+  {
+    id: 'fase-c-2',
+    title: 'Keliling & Luas Lapangan Olahraga',
+    subject: 'Matematika (Fase C)',
+    phase: 'Fase C',
+    description: 'Menghitung keliling lapangan bulu tangkis dan luas taman bunga.',
+    badge: '📐 Geometri',
+    rewardFood: 1,
+    rewardStars: 5,
+    questions: [
+      {
+        question: 'Sebuah taman berbentuk persegi panjang memiliki panjang 10 meter dan lebar 5 meter. Berapa luas taman tersebut?',
+        options: ['15 m²', '30 m²', '50 m²', '100 m²'],
+        correctIndex: 2,
+        explanation: 'Tepat sekali! Luas = panjang × lebar = 10 × 5 = 50 meter persegi! 📏',
+      },
+      {
+        question: 'Jika kamu berlari mengelilingi lapangan itu satu putaran penuh, berapa jarak yang kamu tempuh (keliling)?',
+        options: ['25 meter', '30 meter', '50 meter', '60 meter'],
+        correctIndex: 1,
+        explanation: 'Mantap! Keliling = 2 × (10 + 5) = 2 × 15 = 30 meter! 🏃',
+      },
+    ],
+  },
+  {
+    id: 'fase-c-3',
+    title: 'Kisah Tokoh Pahlawan & Kebudayaan',
+    subject: 'Pancasila & Sejarah (Fase C)',
+    phase: 'Fase C',
+    description: 'Meneladani semangat juang pahlawan nasional dan menghargai keberagaman suku.',
+    badge: '🇮🇩 Budaya Bangsa',
+    rewardFood: 1,
+    rewardStars: 5,
+    questions: [
+      {
+        question: 'Semboyan bangsa Indonesia "Bhinneka Tunggal Ika" memiliki arti yang luhur yaitu...?',
+        options: [
+          'Bersatu kita teguh bercerai kita runtuh',
+          'Berbeda-beda tetapi tetap satu jua',
+          'Maju terus pantang mundur',
+          'Rajin pangkal pandai',
+        ],
+        correctIndex: 1,
+        explanation: 'Benar sekali! Walau kita berbeda suku dan adat, kita tetap bersaudara dalam satu tanah air Indonesia! 🤝🇮🇩',
+      },
+      {
+        question: 'Tokoh pahlawan pelopor pendidikan nasional yang mencetuskan semboyan "Ing Ngarsa Sung Tuladha" adalah...?',
+        options: ['Ki Hajar Dewantara', 'Pangeran Diponegoro', 'Bung Tomo', 'Jenderal Sudirman'],
+        correctIndex: 0,
+        explanation: 'Bagus! Ki Hajar Dewantara diperingati setiap Hari Pendidikan Nasional pada 2 Mei! 🎓',
+      },
+    ],
+  },
+];
+
+export const EDUCATIONAL_GAMES: EducationalGame[] = [
+  // GAME 2D
+  {
+    id: 'game-2d-kata',
+    title: 'Petualangan Kata Nusantara',
+    type: '2d',
+    category: 'Bahasa & Kosakata',
+    description: 'Lompati daun teratai untuk menyusun suku kata menjadi nama flora, fauna, dan budaya Indonesia!',
+    badge: '2D Phonics',
+    skills: ['Literasi Membaca', 'Kosakata Khas', 'Refleks Logika'],
+    gradient: 'from-emerald-500 to-teal-700',
+    recommendedDuration: '5-10 menit',
+  },
+  {
+    id: 'game-2d-hitung',
+    title: 'Teka-Teki Pasar Cincau',
+    type: '2d',
+    category: 'Matematika Terapan',
+    description: 'Bantu Cincau jajan pasar tradisional dengan menyeret koin dan lembaran uang Rupiah yang tepat!',
+    badge: '2D Math Drag & Drop',
+    skills: ['Pecahan Uang Rupiah', 'Penjumlahan Cepat', 'Pemecahan Masalah'],
+    gradient: 'from-amber-500 to-orange-600',
+    recommendedDuration: '5-10 menit',
+  },
+  {
+    id: 'game-2d-buah',
+    title: 'Tangkap Buah Sehat',
+    type: '2d',
+    category: 'Refleks & Pola Hidup Sehat',
+    description: 'Gerakkan keranjang jeli Cincau untuk menangkap buah segar dan hindari botol plastik serta sampah!',
+    badge: '2D Hand-Eye Arcade',
+    skills: ['Koordinasi Tangan-Mata', 'Edukasi Gizi Seimbang', 'Peduli Lingkungan'],
+    gradient: 'from-sky-500 to-blue-700',
+    recommendedDuration: '3-7 menit',
+  },
+
+  // GAME 3D
+  {
+    id: 'game-3d-taman',
+    title: 'Taman Bermain 3D Cincau',
+    type: '3d',
+    category: 'Eksplorasi Spasial 3D',
+    description: 'Cincau kenyal menggelinding di pulau terapung nusantara yang indah! Temukan peti rahasia berisi fakta sains.',
+    badge: '3D Island Explorer',
+    skills: ['Penalaran Spasial 3D', 'Eksplorasi Santai', 'Fakta Sains Flora Fauna'],
+    gradient: 'from-violet-500 to-purple-800',
+    recommendedDuration: '8-15 menit',
+  },
+  {
+    id: 'game-3d-lab',
+    title: 'Lab Kimia & Warna Cincau 3D',
+    type: '3d',
+    category: 'Simulasi Sains Interaktif',
+    description: 'Campurkan cairan tabung reaksi 3D warna primer untuk melihat perubahan wujud cair menjadi jeli kenyal!',
+    badge: '3D Science Lab',
+    skills: ['Teori Warna', 'Perubahan Wujud Benda', 'Metode Eksperimen'],
+    gradient: 'from-fuchsia-500 to-pink-700',
+    recommendedDuration: '5-12 menit',
+  },
+];

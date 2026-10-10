@@ -1,0 +1,6 @@
+{
+  "name": "Charvi",
+  "description": "Cincau — Teman Belajar Interaktif & Maskot Jeli Hidup untuk Anak SD (Kurikulum Merdeka)",
+  "requestFramePermissions": ["camera", "microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
