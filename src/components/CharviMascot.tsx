@@ -228,6 +228,17 @@ export const CharviMascot: React.FC<CharviMascotProps> = ({
 
   const isLarge = variant === 'large-bottom';
 
+  // Physical body lean towards cursor/finger
+  const bodyTiltX = useMemo(() => {
+    if (!isInteracting || isBored || isAngry) return 0;
+    return (lookTarget?.x ?? 0) * 6; // Max 6 degrees tilt
+  }, [lookTarget?.x, isInteracting, isBored, isAngry]);
+
+  const bodyLeanY = useMemo(() => {
+    if (!isInteracting || isBored || isAngry) return 0;
+    return (lookTarget?.y ?? 0) * 5; // Max 5px vertical lean
+  }, [lookTarget?.y, isInteracting, isBored, isAngry]);
+
   return (
     <motion.div
       onClick={handleMascotTap}
@@ -280,14 +291,6 @@ export const CharviMascot: React.FC<CharviMascotProps> = ({
                 scaleY: [1, 0.975, 1],
                 scaleX: [1, 1.02, 1],
                 rotate: [0, -0.4, 0.4, 0],
-              }
-            : isBored
-            ? {
-                // Bored slow sleepy sway
-                y: [0, 3, 0],
-                scaleY: [1, 0.98, 1],
-                scaleX: [1, 1.015, 1],
-                rotate: [0, -0.8, 0.8, 0],
               }
             : {
                 // Organic Jelly Squash & Stretch Floating Rhythm (8-second cycle)
@@ -484,496 +487,506 @@ export const CharviMascot: React.FC<CharviMascotProps> = ({
             transition={{ repeat: Infinity, duration: 1.8, ease: 'easeOut' }}
           />
         )}
+        {/* MASCOT PHYSICAL TRACKING WRAPPER: Tilts and leans whole body towards cursor/finger */}
+        <motion.g
+          animate={{
+            rotate: bodyTiltX,
+            x: (lookTarget?.x ?? 0) * 12, // Physical follow translation
+            y: bodyLeanY,
+          }}
+          transition={{ type: 'spring', damping: 22, stiffness: 140 }}
+          style={{ transformOrigin: '50% 100%' }}
+        >
+          {/* MASCOT BODY WITH PRESERVED SCALLOPED/WAVY TOP */}
+          {isLarge ? (
+            <g>
+              {/* 1. Base Layer: ALWAYS 100% full, rich, translucent solid jelly */}
+              <path
+                d="
+                  M 0, 95
+                  q 20,-34 40,0
+                  q 20,-34 40,0
+                  q 20,-34 40,0
+                  q 20,-34 40,0
+                  q 20,-34 40,0
+                  q 20,-34 40,0
+                  q 20,-34 40,0
+                  q 20,-34 40,0
+                  q 20,-34 40,0
+                  L 360, 480
+                  L 0, 480
+                  Z
+                "
+                fill={getEmotionGradient(baseEmotion, theme)}
+                filter="url(#jellyGlow)"
+              />
 
-        {/* MASCOT BODY WITH PRESERVED SCALLOPED/WAVY TOP */}
-        {isLarge ? (
-          <g>
-            {/* 1. Base Layer: ALWAYS 100% full, rich, translucent solid jelly */}
-            <path
-              d="
-                M 0, 95
-                q 20,-34 40,0
-                q 20,-34 40,0
-                q 20,-34 40,0
-                q 20,-34 40,0
-                q 20,-34 40,0
-                q 20,-34 40,0
-                q 20,-34 40,0
-                q 20,-34 40,0
-                q 20,-34 40,0
-                L 360, 480
-                L 0, 480
-                Z
-              "
-              fill={getEmotionGradient(baseEmotion, theme)}
-              filter="url(#jellyGlow)"
+              {/* 2. DYNAMIC INCOMING TRANSITION WAVE LAYER (SWEEPS UP FOR DOPAMINE, SWEEPS DOWN FOR DEPRESSION) */}
+              {incomingEmotion && (
+                <g clipPath="url(#largeBodyClip)">
+                  {transitionDirection === 'up' ? (
+                    // DOPAMINE WAVE: Sweeps RISING UP from bottom to top (520 -> -40)
+                    <motion.g
+                      key={`up-${transitionKey}`}
+                      initial={{ y: 520 }}
+                      animate={{ y: -40 }}
+                      transition={{ duration: 0.78, ease: [0.22, 1, 0.36, 1] }}
+                    >
+                      <motion.path
+                        d="
+                          M -60, 0
+                          q 55, -14 110, 0
+                          q 55, 14 110, 0
+                          q 55, -14 110, 0
+                          q 55, 14 110, 0
+                          q 55, -14 110, 0
+                          L 490, 600
+                          L -60, 600
+                          Z
+                        "
+                        fill={getEmotionGradient(incomingEmotion, theme)}
+                        stroke="url(#liquidWaveRim)"
+                        strokeWidth="3.5"
+                        strokeLinecap="round"
+                        animate={{ x: [-35, 15, -35] }}
+                        transition={{ repeat: Infinity, duration: 1.8, ease: 'easeInOut' }}
+                      />
+                    </motion.g>
+                  ) : (
+                    // DEPRESSION WAVE: Sweeps FALLING DOWN from top to bottom (-520 -> 140)
+                    <motion.g
+                      key={`down-${transitionKey}`}
+                      initial={{ y: -520 }}
+                      animate={{ y: 120 }}
+                      transition={{ duration: 0.88, ease: [0.35, 0, 0.25, 1] }}
+                    >
+                      <motion.path
+                        d="
+                          M -60, -100
+                          L 490, -100
+                          L 490, 450
+                          q -55, 14 -110, 0
+                          q -55, -14 -110, 0
+                          q -55, 14 -110, 0
+                          q -55, -14 -110, 0
+                          q -55, 14 -110, 0
+                          Z
+                        "
+                        fill={getEmotionGradient(incomingEmotion, theme)}
+                        stroke="url(#liquidWaveRim)"
+                        strokeWidth="3.5"
+                        strokeLinecap="round"
+                        animate={{ x: [15, -35, 15] }}
+                        transition={{ repeat: Infinity, duration: 2.0, ease: 'easeInOut' }}
+                      />
+                    </motion.g>
+                  )}
+                </g>
+              )}
+
+              {/* 3. TRANSLUCENT JELLY MICRO-BUBBLES (ALWAYS VISIBLE IN SOLID JELLY) */}
+              <g opacity="0.36">
+                {/* Bubble 1 (lower left) */}
+                <motion.circle
+                  cx="50"
+                  cy="290"
+                  r="9"
+                  fill="url(#bubbleGloss)"
+                  stroke="#ffffff"
+                  strokeWidth="0.8"
+                  strokeOpacity="0.4"
+                  animate={{ y: [0, -6, 0] }}
+                  transition={{ repeat: Infinity, duration: 3.5, ease: 'easeInOut' }}
+                />
+                <circle cx="47" cy="287" r="2.2" fill="#ffffff" opacity="0.5" />
+
+                {/* Bubble 2 (lower right) */}
+                <motion.circle
+                  cx="310"
+                  cy="300"
+                  r="11"
+                  fill="url(#bubbleGloss)"
+                  stroke="#ffffff"
+                  strokeWidth="0.8"
+                  strokeOpacity="0.4"
+                  animate={{ y: [0, -7, 0] }}
+                  transition={{ repeat: Infinity, duration: 4.2, ease: 'easeInOut', delay: 0.5 }}
+                />
+                <circle cx="307" cy="296" r="2.6" fill="#ffffff" opacity="0.5" />
+
+                {/* Bubble 3 (deep bottom left) */}
+                <motion.circle
+                  cx="75"
+                  cy="390"
+                  r="12"
+                  fill="url(#bubbleGloss)"
+                  stroke="#ffffff"
+                  strokeWidth="0.8"
+                  strokeOpacity="0.3"
+                  animate={{ y: [0, -5, 0] }}
+                  transition={{ repeat: Infinity, duration: 3.8, ease: 'easeInOut', delay: 0.9 }}
+                />
+                <circle cx="72" cy="386" r="2.8" fill="#ffffff" opacity="0.4" />
+
+                {/* Bubble 4 (deep bottom right) */}
+                <motion.circle
+                  cx="285"
+                  cy="395"
+                  r="10"
+                  fill="url(#bubbleGloss)"
+                  stroke="#ffffff"
+                  strokeWidth="0.8"
+                  strokeOpacity="0.3"
+                  animate={{ y: [0, -6, 0] }}
+                  transition={{ repeat: Infinity, duration: 4.0, ease: 'easeInOut', delay: 1.3 }}
+                />
+                <circle cx="282" cy="392" r="2.4" fill="#ffffff" opacity="0.4" />
+              </g>
+            </g>
+          ) : (
+            // Compact header mascot
+            <g>
+              {/* 1. Base Layer: ALWAYS 100% full, rich, translucent solid jelly */}
+              <path
+                d="
+                  M 10, 80
+                  q 18.8,-28 37.7,0
+                  q 18.8,-28 37.7,0
+                  q 18.8,-28 37.7,0
+                  q 18.8,-28 37.7,0
+                  q 18.8,-28 37.7,0
+                  q 18.8,-28 37.7,0
+                  q 18.8,-28 37.7,0
+                  q 18.8,-28 37.7,0
+                  q 18.8,-28 37.7,0
+                  C 355, 170 340, 245 285, 260
+                  C 230, 275 130, 275 75, 260
+                  C 20, 245 5, 170 10, 80
+                  Z
+                "
+                fill={getEmotionGradient(baseEmotion, theme)}
+                filter="url(#jellyGlow)"
+              />
+
+              {/* 2. DYNAMIC INCOMING TRANSITION WAVE LAYER FOR COMPACT MASCOT */}
+              {incomingEmotion && (
+                <g clipPath="url(#compactBodyClip)">
+                  {transitionDirection === 'up' ? (
+                    // DOPAMINE WAVE: Sweeps RISING UP (340 -> -30)
+                    <motion.g
+                      key={`up-c-${transitionKey}`}
+                      initial={{ y: 340 }}
+                      animate={{ y: -30 }}
+                      transition={{ duration: 0.78, ease: [0.22, 1, 0.36, 1] }}
+                    >
+                      <motion.path
+                        d="
+                          M -60, 0
+                          q 55, -12 110, 0
+                          q 55, 12 110, 0
+                          q 55, -12 110, 0
+                          q 55, 12 110, 0
+                          q 55, -12 110, 0
+                          L 490, 420
+                          L -60, 420
+                          Z
+                        "
+                        fill={getEmotionGradient(incomingEmotion, theme)}
+                        stroke="url(#liquidWaveRim)"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        animate={{ x: [-35, 15, -35] }}
+                        transition={{ repeat: Infinity, duration: 1.8, ease: 'easeInOut' }}
+                      />
+                    </motion.g>
+                  ) : (
+                    // DEPRESSION WAVE: Sweeps FALLING DOWN (-340 -> 80)
+                    <motion.g
+                      key={`down-c-${transitionKey}`}
+                      initial={{ y: -340 }}
+                      animate={{ y: 90 }}
+                      transition={{ duration: 0.88, ease: [0.35, 0, 0.25, 1] }}
+                    >
+                      <motion.path
+                        d="
+                          M -60, -80
+                          L 490, -80
+                          L 490, 280
+                          q -55, 12 -110, 0
+                          q -55, -12 -110, 0
+                          q -55, 12 -110, 0
+                          q -55, -12 -110, 0
+                          q -55, 12 -110, 0
+                          Z
+                        "
+                        fill={getEmotionGradient(incomingEmotion, theme)}
+                        stroke="url(#liquidWaveRim)"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        animate={{ x: [15, -35, 15] }}
+                        transition={{ repeat: Infinity, duration: 2.0, ease: 'easeInOut' }}
+                      />
+                    </motion.g>
+                  )}
+                </g>
+              )}
+
+              {/* Subtle transparent bubbles inside compact header mascot */}
+              <g opacity="0.28">
+                <circle cx="50" cy="210" r="6" fill="url(#bubbleGloss)" />
+                <circle cx="48" cy="208" r="1.5" fill="#ffffff" opacity="0.6" />
+                <circle cx="310" cy="215" r="7" fill="url(#bubbleGloss)" />
+                <circle cx="308" cy="213" r="1.8" fill="#ffffff" opacity="0.6" />
+              </g>
+            </g>
+          )}
+
+          {/* LEFT EYE */}
+          <g id="leftEye">
+            {/* White eyeball */}
+            <ellipse
+              cx="126"
+              cy="155"
+              rx="30"
+              ry="46"
+              fill="#ffffff"
             />
 
-            {/* 2. DYNAMIC INCOMING TRANSITION WAVE LAYER (SWEEPS UP FOR DOPAMINE, SWEEPS DOWN FOR DEPRESSION) */}
-            {incomingEmotion && (
-              <g clipPath="url(#largeBodyClip)">
-                {transitionDirection === 'up' ? (
-                  // DOPAMINE WAVE: Sweeps RISING UP from bottom to top (520 -> -40)
-                  <motion.g
-                    key={`up-${transitionKey}`}
-                    initial={{ y: 520 }}
-                    animate={{ y: -40 }}
-                    transition={{ duration: 0.78, ease: [0.22, 1, 0.36, 1] }}
-                  >
-                    <motion.path
-                      d="
-                        M -60, 0
-                        q 55, -14 110, 0
-                        q 55, 14 110, 0
-                        q 55, -14 110, 0
-                        q 55, 14 110, 0
-                        q 55, -14 110, 0
-                        L 490, 600
-                        L -60, 600
-                        Z
-                      "
-                      fill={getEmotionGradient(incomingEmotion, theme)}
-                      stroke="url(#liquidWaveRim)"
-                      strokeWidth="3.5"
-                      strokeLinecap="round"
-                      animate={{ x: [-35, 15, -35] }}
-                      transition={{ repeat: Infinity, duration: 1.8, ease: 'easeInOut' }}
-                    />
-                  </motion.g>
-                ) : (
-                  // DEPRESSION WAVE: Sweeps FALLING DOWN from top to bottom (-520 -> 140)
-                  <motion.g
-                    key={`down-${transitionKey}`}
-                    initial={{ y: -520 }}
-                    animate={{ y: 120 }}
-                    transition={{ duration: 0.88, ease: [0.35, 0, 0.25, 1] }}
-                  >
-                    <motion.path
-                      d="
-                        M -60, -100
-                        L 490, -100
-                        L 490, 450
-                        q -55, 14 -110, 0
-                        q -55, -14 -110, 0
-                        q -55, 14 -110, 0
-                        q -55, -14 -110, 0
-                        q -55, 14 -110, 0
-                        Z
-                      "
-                      fill={getEmotionGradient(incomingEmotion, theme)}
-                      stroke="url(#liquidWaveRim)"
-                      strokeWidth="3.5"
-                      strokeLinecap="round"
-                      animate={{ x: [15, -35, 15] }}
-                      transition={{ repeat: Infinity, duration: 2.0, ease: 'easeInOut' }}
-                    />
-                  </motion.g>
-                )}
-              </g>
-            )}
+            {/* Eye Contents: Pupil + Eyelid Shutter */}
+            <g clipPath="url(#leftEyeClip)">
+              {/* Tracking Pupil */}
+              <motion.g
+                animate={{
+                  x: pupilOffsetX,
+                  y: pupilOffsetY,
+                }}
+                transition={{ type: 'spring', damping: 20, stiffness: 220 }}
+              >
+                <ellipse
+                  cx="126"
+                  cy="155"
+                  rx={isExcited ? 21 : isBored ? 16 : 18}
+                  ry={isExcited ? 29 : isBored ? 20 : 26}
+                  fill="#0f172a"
+                />
+                <circle cx="120" cy="144" r={isExcited ? 7 : 5.5} fill="#ffffff" opacity="0.95" />
+                <circle cx="132" cy="164" r={isExcited ? 3.5 : 2.8} fill="#ffffff" opacity="0.8" />
+              </motion.g>
 
-            {/* 3. TRANSLUCENT JELLY MICRO-BUBBLES (ALWAYS VISIBLE IN SOLID JELLY) */}
-            <g opacity="0.36">
-              {/* Bubble 1 (lower left) */}
-              <motion.circle
-                cx="50"
-                cy="290"
-                r="9"
-                fill="url(#bubbleGloss)"
-                stroke="#ffffff"
-                strokeWidth="0.8"
-                strokeOpacity="0.4"
-                animate={{ y: [0, -6, 0] }}
-                transition={{ repeat: Infinity, duration: 3.5, ease: 'easeInOut' }}
-              />
-              <circle cx="47" cy="287" r="2.2" fill="#ffffff" opacity="0.5" />
+              {/* Eyelid Shutter: glides top-down for blink, or rests halfway for BORED sleepy eyes */}
+              <motion.g
+                initial={false}
+                animate={{
+                  y: isBlinking ? 35 : isBored ? -35 : -125,
+                }}
+                transition={{
+                  duration: isBlinking ? 0.12 : 0.25,
+                  ease: [0.33, 1, 0.68, 1],
+                }}
+              >
+                <path
+                  d="M 90, 60 L 162, 60 L 162, 175 Q 126, 188 90, 175 Z"
+                  fill={getEmotionGradient(activeEmotion, theme)}
+                />
+                <path
+                  d="M 90, 175 Q 126, 188 162, 175"
+                  fill="none"
+                  stroke="#0f172a"
+                  strokeWidth={isBored ? '4' : '3.5'}
+                  strokeLinecap="round"
+                />
+              </motion.g>
 
-              {/* Bubble 2 (lower right) */}
-              <motion.circle
-                cx="310"
-                cy="300"
-                r="11"
-                fill="url(#bubbleGloss)"
-                stroke="#ffffff"
-                strokeWidth="0.8"
-                strokeOpacity="0.4"
-                animate={{ y: [0, -7, 0] }}
-                transition={{ repeat: Infinity, duration: 4.2, ease: 'easeInOut', delay: 0.5 }}
-              />
-              <circle cx="307" cy="296" r="2.6" fill="#ffffff" opacity="0.5" />
+              {/* Angry inward slanted eyelid crease */}
+              {isAngry && (
+                <path
+                  d="M 92, 125 L 160, 150"
+                  fill="none"
+                  stroke="#0f172a"
+                  strokeWidth="5"
+                  strokeLinecap="round"
+                />
+              )}
 
-              {/* Bubble 3 (deep bottom left) */}
-              <motion.circle
-                cx="75"
-                cy="390"
-                r="12"
-                fill="url(#bubbleGloss)"
-                stroke="#ffffff"
-                strokeWidth="0.8"
-                strokeOpacity="0.3"
-                animate={{ y: [0, -5, 0] }}
-                transition={{ repeat: Infinity, duration: 3.8, ease: 'easeInOut', delay: 0.9 }}
-              />
-              <circle cx="72" cy="386" r="2.8" fill="#ffffff" opacity="0.4" />
-
-              {/* Bubble 4 (deep bottom right) */}
-              <motion.circle
-                cx="285"
-                cy="395"
-                r="10"
-                fill="url(#bubbleGloss)"
-                stroke="#ffffff"
-                strokeWidth="0.8"
-                strokeOpacity="0.3"
-                animate={{ y: [0, -6, 0] }}
-                transition={{ repeat: Infinity, duration: 4.0, ease: 'easeInOut', delay: 1.3 }}
-              />
-              <circle cx="282" cy="392" r="2.4" fill="#ffffff" opacity="0.4" />
+              {/* Sad outward slanted eyelid crease */}
+              {isSad && (
+                <path
+                  d="M 92, 148 L 158, 126"
+                  fill="none"
+                  stroke="#0f172a"
+                  strokeWidth="4.5"
+                  strokeLinecap="round"
+                />
+              )}
             </g>
           </g>
-        ) : (
-          // Compact header mascot
-          <g>
-            {/* 1. Base Layer: ALWAYS 100% full, rich, translucent solid jelly */}
-            <path
-              d="
-                M 10, 80
-                q 18.8,-28 37.7,0
-                q 18.8,-28 37.7,0
-                q 18.8,-28 37.7,0
-                q 18.8,-28 37.7,0
-                q 18.8,-28 37.7,0
-                q 18.8,-28 37.7,0
-                q 18.8,-28 37.7,0
-                q 18.8,-28 37.7,0
-                q 18.8,-28 37.7,0
-                C 355, 170 340, 245 285, 260
-                C 230, 275 130, 275 75, 260
-                C 20, 245 5, 170 10, 80
-                Z
-              "
-              fill={getEmotionGradient(baseEmotion, theme)}
-              filter="url(#jellyGlow)"
+
+          {/* RIGHT EYE */}
+          <g id="rightEye">
+            {/* White eyeball */}
+            <ellipse
+              cx="234"
+              cy="155"
+              rx="30"
+              ry="46"
+              fill="#ffffff"
             />
 
-            {/* 2. DYNAMIC INCOMING TRANSITION WAVE LAYER FOR COMPACT MASCOT */}
-            {incomingEmotion && (
-              <g clipPath="url(#compactBodyClip)">
-                {transitionDirection === 'up' ? (
-                  // DOPAMINE WAVE: Sweeps RISING UP (340 -> -30)
-                  <motion.g
-                    key={`up-c-${transitionKey}`}
-                    initial={{ y: 340 }}
-                    animate={{ y: -30 }}
-                    transition={{ duration: 0.78, ease: [0.22, 1, 0.36, 1] }}
-                  >
-                    <motion.path
-                      d="
-                        M -60, 0
-                        q 55, -12 110, 0
-                        q 55, 12 110, 0
-                        q 55, -12 110, 0
-                        q 55, 12 110, 0
-                        q 55, -12 110, 0
-                        L 490, 420
-                        L -60, 420
-                        Z
-                      "
-                      fill={getEmotionGradient(incomingEmotion, theme)}
-                      stroke="url(#liquidWaveRim)"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                      animate={{ x: [-35, 15, -35] }}
-                      transition={{ repeat: Infinity, duration: 1.8, ease: 'easeInOut' }}
-                    />
-                  </motion.g>
-                ) : (
-                  // DEPRESSION WAVE: Sweeps FALLING DOWN (-340 -> 80)
-                  <motion.g
-                    key={`down-c-${transitionKey}`}
-                    initial={{ y: -340 }}
-                    animate={{ y: 90 }}
-                    transition={{ duration: 0.88, ease: [0.35, 0, 0.25, 1] }}
-                  >
-                    <motion.path
-                      d="
-                        M -60, -80
-                        L 490, -80
-                        L 490, 280
-                        q -55, 12 -110, 0
-                        q -55, -12 -110, 0
-                        q -55, 12 -110, 0
-                        q -55, -12 -110, 0
-                        q -55, 12 -110, 0
-                        Z
-                      "
-                      fill={getEmotionGradient(incomingEmotion, theme)}
-                      stroke="url(#liquidWaveRim)"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                      animate={{ x: [15, -35, 15] }}
-                      transition={{ repeat: Infinity, duration: 2.0, ease: 'easeInOut' }}
-                    />
-                  </motion.g>
-                )}
-              </g>
-            )}
+            {/* Eye Contents: Pupil + Eyelid Shutter */}
+            <g clipPath="url(#rightEyeClip)">
+              {/* Tracking Pupil */}
+              <motion.g
+                animate={{
+                  x: pupilOffsetX,
+                  y: pupilOffsetY,
+                }}
+                transition={{ type: 'spring', damping: 20, stiffness: 220 }}
+              >
+                <ellipse
+                  cx="234"
+                  cy="155"
+                  rx={isExcited ? 21 : isBored ? 16 : 18}
+                  ry={isExcited ? 29 : isBored ? 20 : 26}
+                  fill="#0f172a"
+                />
+                <circle cx="228" cy="144" r={isExcited ? 7 : 5.5} fill="#ffffff" opacity="0.95" />
+                <circle cx="240" cy="164" r={isExcited ? 3.5 : 2.8} fill="#ffffff" opacity="0.8" />
+              </motion.g>
 
-            {/* Subtle transparent bubbles inside compact header mascot */}
-            <g opacity="0.28">
-              <circle cx="50" cy="210" r="6" fill="url(#bubbleGloss)" />
-              <circle cx="48" cy="208" r="1.5" fill="#ffffff" opacity="0.6" />
-              <circle cx="310" cy="215" r="7" fill="url(#bubbleGloss)" />
-              <circle cx="308" cy="213" r="1.8" fill="#ffffff" opacity="0.6" />
+              {/* Eyelid Shutter: glides top-down for blink, or rests halfway for BORED sleepy eyes */}
+              <motion.g
+                initial={false}
+                animate={{
+                  y: isBlinking ? 35 : isBored ? -35 : -125,
+                }}
+                transition={{
+                  duration: isBlinking ? 0.12 : 0.25,
+                  ease: [0.33, 1, 0.68, 1],
+                }}
+              >
+                <path
+                  d="M 198, 60 L 270, 60 L 270, 175 Q 234, 188 198, 175 Z"
+                  fill={getEmotionGradient(activeEmotion, theme)}
+                />
+                <path
+                  d="M 198, 175 Q 234, 188 270, 175"
+                  fill="none"
+                  stroke="#0f172a"
+                  strokeWidth={isBored ? '4' : '3.5'}
+                  strokeLinecap="round"
+                />
+              </motion.g>
+
+              {/* Angry inward slanted eyelid crease */}
+              {isAngry && (
+                <path
+                  d="M 268, 125 L 200, 150"
+                  fill="none"
+                  stroke="#0f172a"
+                  strokeWidth="5"
+                  strokeLinecap="round"
+                />
+              )}
+
+              {/* Sad outward slanted eyelid crease */}
+              {isSad && (
+                <path
+                  d="M 268, 148 L 202, 126"
+                  fill="none"
+                  stroke="#0f172a"
+                  strokeWidth="4.5"
+                  strokeLinecap="round"
+                />
+              )}
             </g>
           </g>
-        )}
 
-        {/* LEFT EYE */}
-        <g id="leftEye">
-          {/* White eyeball */}
-          <ellipse
-            cx="126"
-            cy="155"
-            rx="30"
-            ry="46"
-            fill="#ffffff"
-          />
-
-          {/* Eye Contents: Pupil + Eyelid Shutter */}
-          <g clipPath="url(#leftEyeClip)">
-            {/* Tracking Pupil */}
-            <motion.g
-              animate={{
-                x: pupilOffsetX,
-                y: pupilOffsetY,
-              }}
-              transition={{ type: 'spring', damping: 20, stiffness: 220 }}
-            >
-              <ellipse
-                cx="126"
-                cy="155"
-                rx={isExcited ? 21 : isBored ? 16 : 18}
-                ry={isExcited ? 29 : isBored ? 20 : 26}
-                fill="#0f172a"
-              />
-              <circle cx="120" cy="144" r={isExcited ? 7 : 5.5} fill="#ffffff" opacity="0.95" />
-              <circle cx="132" cy="164" r={isExcited ? 3.5 : 2.8} fill="#ffffff" opacity="0.8" />
-            </motion.g>
-
-            {/* Eyelid Shutter: glides top-down for blink, or rests halfway for BORED sleepy eyes */}
-            <motion.g
-              initial={false}
-              animate={{
-                y: isBlinking ? 35 : isBored ? -35 : -125,
-              }}
-              transition={{
-                duration: isBlinking ? 0.12 : 0.25,
-                ease: [0.33, 1, 0.68, 1],
-              }}
-            >
-              <path
-                d="M 90, 60 L 162, 60 L 162, 175 Q 126, 188 90, 175 Z"
-                fill={getEmotionGradient(activeEmotion, theme)}
-              />
-              <path
-                d="M 90, 175 Q 126, 188 162, 175"
+          {/* MOUTH & EXPRESSIONS */}
+          <g id="mouth">
+            {isTalking ? (
+              talkingFrame % 2 === 0 ? (
+                <path
+                  d="M 170, 234 Q 192, 258 214, 222 Q 192, 234 170, 234 Z"
+                  fill="#0f172a"
+                />
+              ) : (
+                <path
+                  d="M 172, 230 Q 192, 245 214, 218"
+                  fill="none"
+                  stroke="#0f172a"
+                  strokeWidth="7.5"
+                  strokeLinecap="round"
+                />
+              )
+            ) : isAngry ? (
+              // Angry downturned pouty mouth (centered between eyes)
+              <motion.path
+                d="M 168, 236 Q 193, 222 218, 236"
                 fill="none"
                 stroke="#0f172a"
-                strokeWidth={isBored ? '4' : '3.5'}
+                strokeWidth="7.5"
                 strokeLinecap="round"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 0.2 }}
               />
-            </motion.g>
-
-            {/* Angry inward slanted eyelid crease */}
-            {isAngry && (
-              <path
-                d="M 92, 125 L 160, 150"
+            ) : isBored ? (
+              // Bored flat horizontal mouth line (centered between eyes)
+              <motion.path
+                d="M 174, 234 L 210, 234"
                 fill="none"
                 stroke="#0f172a"
-                strokeWidth="5"
+                strokeWidth="6"
                 strokeLinecap="round"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 0.2 }}
               />
-            )}
-
-            {/* Sad outward slanted eyelid crease */}
-            {isSad && (
+            ) : isHappy ? (
+              // Happy wide open joyful mouth with pink tongue (shifted to center between eyes)
+              <g>
+                <path
+                  d="M 166, 224 Q 192, 262 218, 224 Q 192, 234 166, 224 Z"
+                  fill="#0f172a"
+                />
+                <path
+                  d="M 180, 240 Q 192, 256 204, 240 Z"
+                  fill="#ff4081"
+                />
+              </g>
+            ) : isExcited ? (
+              // Excited open cheering mouth (shifted to center between eyes)
+              <g>
+                <path
+                  d="M 166, 222 Q 192, 264 218, 222 Z"
+                  fill="#0f172a"
+                />
+                <path
+                  d="M 180, 240 Q 192, 258 204, 240 Z"
+                  fill="#ff4081"
+                />
+              </g>
+            ) : isSad ? (
+              // Sad downturned trembling mouth (centered between eyes)
               <path
-                d="M 92, 148 L 158, 126"
+                d="M 168, 238 Q 192, 222 216, 238"
                 fill="none"
                 stroke="#0f172a"
-                strokeWidth="4.5"
+                strokeWidth="7"
                 strokeLinecap="round"
-              />
-            )}
-          </g>
-        </g>
-
-        {/* RIGHT EYE */}
-        <g id="rightEye">
-          {/* White eyeball */}
-          <ellipse
-            cx="234"
-            cy="155"
-            rx="30"
-            ry="46"
-            fill="#ffffff"
-          />
-
-          {/* Eye Contents: Pupil + Eyelid Shutter */}
-          <g clipPath="url(#rightEyeClip)">
-            {/* Tracking Pupil */}
-            <motion.g
-              animate={{
-                x: pupilOffsetX,
-                y: pupilOffsetY,
-              }}
-              transition={{ type: 'spring', damping: 20, stiffness: 220 }}
-            >
-              <ellipse
-                cx="234"
-                cy="155"
-                rx={isExcited ? 21 : isBored ? 16 : 18}
-                ry={isExcited ? 29 : isBored ? 20 : 26}
-                fill="#0f172a"
-              />
-              <circle cx="228" cy="144" r={isExcited ? 7 : 5.5} fill="#ffffff" opacity="0.95" />
-              <circle cx="240" cy="164" r={isExcited ? 3.5 : 2.8} fill="#ffffff" opacity="0.8" />
-            </motion.g>
-
-            {/* Eyelid Shutter: glides top-down for blink, or rests halfway for BORED sleepy eyes */}
-            <motion.g
-              initial={false}
-              animate={{
-                y: isBlinking ? 35 : isBored ? -35 : -125,
-              }}
-              transition={{
-                duration: isBlinking ? 0.12 : 0.25,
-                ease: [0.33, 1, 0.68, 1],
-              }}
-            >
-              <path
-                d="M 198, 60 L 270, 60 L 270, 175 Q 234, 188 198, 175 Z"
-                fill={getEmotionGradient(activeEmotion, theme)}
-              />
-              <path
-                d="M 198, 175 Q 234, 188 270, 175"
-                fill="none"
-                stroke="#0f172a"
-                strokeWidth={isBored ? '4' : '3.5'}
-                strokeLinecap="round"
-              />
-            </motion.g>
-
-            {/* Angry inward slanted eyelid crease */}
-            {isAngry && (
-              <path
-                d="M 268, 125 L 200, 150"
-                fill="none"
-                stroke="#0f172a"
-                strokeWidth="5"
-                strokeLinecap="round"
-              />
-            )}
-
-            {/* Sad outward slanted eyelid crease */}
-            {isSad && (
-              <path
-                d="M 268, 148 L 202, 126"
-                fill="none"
-                stroke="#0f172a"
-                strokeWidth="4.5"
-                strokeLinecap="round"
-              />
-            )}
-          </g>
-        </g>
-
-        {/* MOUTH & EXPRESSIONS */}
-        <g id="mouth">
-          {isTalking ? (
-            talkingFrame % 2 === 0 ? (
-              <path
-                d="M 170, 234 Q 192, 258 214, 222 Q 192, 234 170, 234 Z"
-                fill="#0f172a"
               />
             ) : (
+              // Default iconic cheeky smirk curve (balanced toward center)
               <path
-                d="M 172, 230 Q 192, 245 214, 218"
+                d="M 186, 232 Q 216, 239 238, 214"
                 fill="none"
                 stroke="#0f172a"
                 strokeWidth="7.5"
                 strokeLinecap="round"
               />
-            )
-          ) : isAngry ? (
-            // Angry downturned pouty mouth (centered between eyes)
-            <motion.path
-              d="M 168, 236 Q 193, 222 218, 236"
-              fill="none"
-              stroke="#0f172a"
-              strokeWidth="7.5"
-              strokeLinecap="round"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: 0.2 }}
-            />
-          ) : isBored ? (
-            // Bored flat horizontal mouth line (centered between eyes)
-            <motion.path
-              d="M 174, 234 L 210, 234"
-              fill="none"
-              stroke="#0f172a"
-              strokeWidth="6"
-              strokeLinecap="round"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: 0.2 }}
-            />
-          ) : isHappy ? (
-            // Happy wide open joyful mouth with pink tongue (shifted to center between eyes)
-            <g>
-              <path
-                d="M 166, 224 Q 192, 262 218, 224 Q 192, 234 166, 224 Z"
-                fill="#0f172a"
-              />
-              <path
-                d="M 180, 240 Q 192, 256 204, 240 Z"
-                fill="#ff4081"
-              />
-            </g>
-          ) : isExcited ? (
-            // Excited open cheering mouth (shifted to center between eyes)
-            <g>
-              <path
-                d="M 166, 222 Q 192, 264 218, 222 Z"
-                fill="#0f172a"
-              />
-              <path
-                d="M 180, 240 Q 192, 258 204, 240 Z"
-                fill="#ff4081"
-              />
-            </g>
-          ) : isSad ? (
-            // Sad downturned trembling mouth (centered between eyes)
-            <path
-              d="M 168, 238 Q 192, 222 216, 238"
-              fill="none"
-              stroke="#0f172a"
-              strokeWidth="7"
-              strokeLinecap="round"
-            />
-          ) : (
-            // Default iconic cheeky smirk curve (balanced toward center)
-            <path
-              d="M 186, 232 Q 216, 239 238, 214"
-              fill="none"
-              stroke="#0f172a"
-              strokeWidth="7.5"
-              strokeLinecap="round"
-            />
-          )}
-        </g>
+            )}
+          </g>
+        </motion.g>
       </motion.svg>
     </motion.div>
   );

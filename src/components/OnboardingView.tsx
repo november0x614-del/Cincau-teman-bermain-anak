@@ -2,15 +2,12 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { CharviMascot } from './CharviMascot';
 import { FruitBasketIcon } from './FruitBasketIcon';
-import { ArrowRight, Sparkles } from 'lucide-react';
-import { MascotTheme, CharviEmotion, LookTarget, DailyMission, EducationalGame } from '../types';
+import { ArrowRight, Sparkles, Home, Trees } from 'lucide-react';
+import { MascotTheme, CharviEmotion, LookTarget } from '../types';
 import { CincauFeedingOverlay } from './CincauFeedingOverlay';
 import { playPopSound } from '../utils/audioEffects';
 import { getThemeStyle } from '../utils/themeColors';
-import { CincauMissionQuizModal } from './CincauMissionQuizModal';
-import { CincauGameModal } from './CincauGameModal';
-import { CharviAiChat } from './CharviAiChat';
-import { INITIAL_MISSIONS, EDUCATIONAL_GAMES } from '../data/cincauContent';
+import { HabitatWorlds } from './HabitatWorlds';
 
 interface OnboardingViewProps {
   mascotTheme: MascotTheme;
@@ -21,9 +18,14 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
   mascotTheme,
   onToggleTheme,
 }) => {
+  // Global View Index (0: Onboarding, 1: Rumah Cincau, 2: Luar Ruangan)
+  const [viewIndex, setViewIndex] = useState<number>(0);
+  const [bounceKey, setBounceKey] = useState<number>(0);
+
   const [selectedMode, setSelectedMode] = useState<'learn' | 'play' | null>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [isInteracting, setIsInteracting] = useState(false);
+  const [mouseLookTarget, setMouseLookTarget] = useState<LookTarget>({ x: 0, y: 0.3 });
   const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Feeding & Gamification States
@@ -33,21 +35,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
   const [dragLookTarget, setDragLookTarget] = useState<LookTarget | null>(null);
 
   // Tamagotchi Points State
-  const [foodStock, setFoodStock] = useState<number>(3);
-  const [starPoints, setStarPoints] = useState<number>(25);
-  const [currentHp, setCurrentHp] = useState<number>(() => {
-    const saved = localStorage.getItem('cincau_tamagotchi_hp');
-    if (saved) {
-      const parsed = Number(saved);
-      if (!isNaN(parsed) && parsed >= 0 && parsed <= 100) return parsed;
-    }
-    return 75;
-  });
-
-  // Active Modals over Screen 1
-  const [activeQuizMission, setActiveQuizMission] = useState<DailyMission | null>(null);
-  const [activeGame, setActiveGame] = useState<EducationalGame | null>(null);
-  const [isAiOpen, setIsAiOpen] = useState(false);
+  const [currentHp, setCurrentHp] = useState<number>(75);
 
   const lastTapTimeRef = useRef<number>(0);
   const emotionTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -59,6 +47,23 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
     idleTimerRef.current = setTimeout(() => {
       setIsInteracting(false);
     }, 3500);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    registerInteraction();
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    const y = ((e.clientY - rect.top) / rect.height) * 2 - 1;
+    setMouseLookTarget({ x: x * 0.9, y: y * 0.9 });
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    registerInteraction();
+    const touch = e.touches[0];
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
+    const y = ((touch.clientY - rect.top) / rect.height) * 2 - 1;
+    setMouseLookTarget({ x: x * 0.9, y: y * 0.9 });
   };
 
   useEffect(() => {
@@ -103,15 +108,24 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
     setSelectedMode(mode);
   };
 
-  const handleStartAction = () => {
+  // Trigger travel transition and mascot bounce jump
+  const travelToView = (targetIndex: number) => {
+    playPopSound();
+    setViewIndex(targetIndex);
+    setBounceKey((k) => k + 1);
+    setMascotEmotionOverride('excited');
+    setTimeout(() => setMascotEmotionOverride('happy'), 2600);
+  };
+
+  // Primary Action Button Handler (Driven by current world)
+  const handlePrimaryAction = () => {
     registerInteraction();
-    if (selectedMode === 'play') {
-      // Launch Educational Game
-      setActiveGame(EDUCATIONAL_GAMES[0]);
+    if (viewIndex === 0) {
+      travelToView(1);
+    } else if (viewIndex === 1) {
+      travelToView(2);
     } else {
-      // Default / Belajar: Launch Kurikulum Merdeka Mission Quiz
-      const pendingMission = INITIAL_MISSIONS.find((m) => !m.isCompleted) || INITIAL_MISSIONS[0];
-      setActiveQuizMission(pendingMission);
+      travelToView(1);
     }
   };
 
@@ -123,7 +137,6 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
     const timeSinceLastTap = now - lastTapTimeRef.current;
 
     if (timeSinceLastTap > 40 && timeSinceLastTap < 420) {
-      // Double tap triggered!
       setIsBubbleMenuOpen(true);
       setMascotEmotionOverride('happy');
       playPopSound();
@@ -164,224 +177,272 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
         mascotEmotion: 'excited',
       };
     }
-    if (selectedMode === 'learn') {
+    if (isInteracting || isHovered) {
       return {
-        lookTarget: { x: -0.22, y: -0.85 },
-        mascotEmotion: 'happy',
-      };
-    }
-    if (selectedMode === 'play') {
-      return {
-        lookTarget: { x: 0.35, y: -0.75 },
-        mascotEmotion: 'excited',
-      };
-    }
-    if (isHovered) {
-      return {
-        lookTarget: { x: 0.1, y: 0.8 },
-        mascotEmotion: 'idle',
-      };
-    }
-    if (currentHp <= 28) {
-      return {
-        lookTarget: { x: 0, y: -0.5 },
-        mascotEmotion: 'sad',
+        lookTarget: mouseLookTarget,
+        mascotEmotion: mascotEmotionOverride || 'idle',
       };
     }
     return {
       lookTarget: { x: 0.28, y: -0.75 },
       mascotEmotion: 'idle',
     };
-  }, [dragLookTarget, mascotEmotionOverride, isFeedingOpen, isBubbleMenuOpen, selectedMode, isHovered, currentHp]);
+  }, [dragLookTarget, mascotEmotionOverride, isFeedingOpen, isBubbleMenuOpen, isHovered, isInteracting, mouseLookTarget]);
 
   return (
     <div
       onClick={handleOutsideClick}
-      onMouseMove={registerInteraction}
+      onMouseMove={handleMouseMove}
+      onTouchMove={handleTouchMove}
       onTouchStart={registerInteraction}
       className="relative w-full h-full min-h-screen bg-white text-neutral-900 flex flex-col justify-between overflow-hidden select-none cursor-default"
     >
-      {/* Top Mobile Status Bar */}
+      {/* 1. 2D SIDE-SCROLLING BACKGROUND CONTAINER */}
+      <HabitatWorlds viewIndex={viewIndex} />
+
+      {/* 2. TOP MOBILE STATUS BAR (Persistent, does not slide) */}
       <div className="w-full pt-3 px-6 flex items-center justify-between text-xs text-neutral-700 z-20">
         <span className="font-bold text-neutral-900 tracking-wide">9:41</span>
         <div className="flex items-center gap-2">
 
-
-          {/* AI Helper Trigger */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsAiOpen(true);
-            }}
-            className={`p-1.5 rounded-full bg-neutral-100 border border-neutral-200 hover:bg-neutral-200 transition-colors relative cursor-pointer ${themeStyle.textColor}`}
-            title="Tanya Cincau AI"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-          </button>
-
-          {/* Theme Quick Switcher */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleTheme();
-            }}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-all cursor-pointer bg-neutral-50 hover:bg-neutral-100 border-neutral-200 text-neutral-700 shadow-2xs"
-            title="Ganti tema warna Cincau"
-          >
-            <div className={`w-2.5 h-2.5 rounded-full ${themeStyle.dotColor}`} />
-            <span>Cincau</span>
-          </button>
         </div>
       </div>
 
-      {/* Language badge */}
+      {/* 3. CONTEXTUAL WORLD SWITCHER BADGE (Persistent, indicates world 0, 1, 2) */}
       <div className="px-6 pt-2 z-20 flex justify-between items-center">
         <span className="text-[13px] text-neutral-500 font-semibold tracking-wide">ID</span>
+
+        {/* Floating Navigation Icons */}
+        <div className="flex items-center gap-3 pr-2">
+          {/* Awal / Onboarding Icon */}
+          <motion.button
+            onClick={() => travelToView(0)}
+            animate={{ 
+              y: viewIndex === 0 ? [0, -3, 0] : 0,
+              scale: viewIndex === 0 ? 1.15 : 0.9,
+              rotate: viewIndex === 0 ? [0, 8, 0] : 0
+            }}
+            transition={{ 
+              y: { repeat: Infinity, duration: 3, ease: 'easeInOut' },
+              rotate: { repeat: Infinity, duration: 4, ease: 'easeInOut' },
+              scale: { type: 'spring', stiffness: 300, damping: 15 }
+            }}
+            className={`p-2 rounded-2xl border-2 transition-all cursor-pointer shadow-xs ${
+              viewIndex === 0
+                ? 'bg-amber-100 border-amber-400 text-amber-600 shadow-md'
+                : 'bg-white/80 border-neutral-100 text-neutral-400 hover:border-neutral-200'
+            }`}
+            title="Ke Halaman Awal"
+          >
+            <Sparkles className="w-5 h-5" />
+          </motion.button>
+
+          {/* Rumah Cincau Icon (Active only if 'learn' mode is selected) */}
+          <motion.button
+            onClick={() => selectedMode === 'learn' && travelToView(1)}
+            disabled={selectedMode !== 'learn'}
+            animate={{ 
+              y: viewIndex === 1 ? [0, -3, 0] : 0,
+              scale: viewIndex === 1 ? 1.15 : 0.9,
+              rotate: viewIndex === 1 ? [0, -8, 0] : 0,
+              opacity: selectedMode === 'learn' ? 1 : 0.4
+            }}
+            transition={{ 
+              y: { repeat: Infinity, duration: 3.2, ease: 'easeInOut', delay: 0.2 },
+              rotate: { repeat: Infinity, duration: 4.2, ease: 'easeInOut', delay: 0.1 },
+              scale: { type: 'spring', stiffness: 300, damping: 15 }
+            }}
+            className={`p-2 rounded-2xl border-2 transition-all shadow-xs ${
+              selectedMode === 'learn' ? 'cursor-pointer' : 'cursor-not-allowed grayscale'
+            } ${
+              viewIndex === 1
+                ? 'bg-amber-100 border-amber-400 text-amber-600 shadow-md'
+                : 'bg-white/80 border-neutral-100 text-neutral-400 hover:border-neutral-200'
+            }`}
+            title={selectedMode === 'learn' ? "Ke Rumah Cincau" : "Pilih mode 'Belajar' untuk masuk ke rumah"}
+          >
+            <Home className="w-5 h-5" />
+          </motion.button>
+
+          {/* Luar Ruangan Icon (Active only if 'play' mode is selected) */}
+          <motion.button
+            onClick={() => selectedMode === 'play' && travelToView(2)}
+            disabled={selectedMode !== 'play'}
+            animate={{ 
+              y: viewIndex === 2 ? [0, -3, 0] : 0,
+              scale: viewIndex === 2 ? 1.15 : 0.9,
+              rotate: viewIndex === 2 ? [0, 10, 0] : 0,
+              opacity: selectedMode === 'play' ? 1 : 0.4
+            }}
+            transition={{ 
+              y: { repeat: Infinity, duration: 3.5, ease: 'easeInOut', delay: 0.4 },
+              rotate: { repeat: Infinity, duration: 4.5, ease: 'easeInOut', delay: 0.2 },
+              scale: { type: 'spring', stiffness: 300, damping: 15 }
+            }}
+            className={`p-2 rounded-2xl border-2 transition-all shadow-xs ${
+              selectedMode === 'play' ? 'cursor-pointer' : 'cursor-not-allowed grayscale'
+            } ${
+              viewIndex === 2
+                ? 'bg-emerald-100 border-emerald-400 text-emerald-600 shadow-md'
+                : 'bg-white/80 border-neutral-100 text-neutral-400 hover:border-neutral-200'
+            }`}
+            title={selectedMode === 'play' ? "Ke Luar Ruangan" : "Pilih mode 'Bermain' untuk ke luar ruangan"}
+          >
+            <Trees className="w-5 h-5" />
+          </motion.button>
+        </div>
       </div>
 
-      {/* CENTER HERO CONTENT: Kotak Belajar & Bermain */}
-      <motion.div
-        animate={{
-          y: isFeedingOpen ? -180 : 0,
-          opacity: isFeedingOpen ? 0 : 1,
-          scale: isFeedingOpen ? 0.9 : 1,
-        }}
-        transition={{
-          type: 'spring',
-          damping: 22,
-          stiffness: 220,
-        }}
-        style={{ pointerEvents: isFeedingOpen ? 'none' : 'auto' }}
-        className="relative px-6 pt-4 pb-2 z-20 flex flex-col items-start max-w-sm mx-auto w-full"
-      >
-        {/* Fruit Basket Food Icon */}
-        <div className="absolute right-7 -top-3 pointer-events-auto">
-          <motion.div
-            initial={{ rotate: 8, scale: 0.9 }}
-            animate={{ rotate: [8, 14, 8], y: [0, -3, 0] }}
-            transition={{ repeat: Infinity, duration: 3.5, ease: 'easeInOut' }}
-            whileHover={{ scale: 1.15, rotate: 12 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={(e) => {
-              e.stopPropagation();
-              playPopSound();
-              setIsFeedingOpen(true);
-              setIsBubbleMenuOpen(true);
-            }}
-            className="cursor-pointer"
-            title="Buka Keranjang Hadiah Makanan Cincau"
-          >
-            <FruitBasketIcon className="w-11 h-11 drop-shadow-sm" />
-          </motion.div>
-        </div>
-
-        {/* Sticker 1: "Belajar" */}
+      {/* 4. SYNCHRONIZED SLIDING TOP UI TRACK (Slides together with HabitatWorlds) */}
+      <div className="w-full overflow-hidden relative z-20 pt-1 pb-2">
         <motion.div
-          role="button"
-          tabIndex={0}
-          onClick={(e) => handleSelectMode(e, 'learn')}
-          whileHover={{ scale: selectedMode === 'learn' ? 1.05 : 1.03 }}
-          whileTap={{ scale: 0.94, y: 4 }}
-          initial={{ opacity: 0, y: -20, rotate: -8 }}
           animate={{
-            opacity: 1,
-            y: selectedMode === 'learn' ? 4 : 0,
-            rotate: selectedMode === 'learn' ? -1.5 : -3.5,
-            scale: selectedMode === 'learn' ? 1.05 : selectedMode === 'play' ? 0.95 : 1,
+            x: `${-(viewIndex * 100) / 3}%`,
+            y: isFeedingOpen ? -180 : 0,
+            opacity: isFeedingOpen ? 0 : 1,
+            scale: isFeedingOpen ? 0.9 : 1,
           }}
-          transition={{ type: 'spring', damping: 14, stiffness: 260 }}
-          className={`relative inline-block text-white px-5 py-1.5 rounded-lg font-extrabold text-3xl tracking-tight transition-colors duration-200 cursor-pointer select-none ${
-            selectedMode === 'learn'
-              ? `${themeStyle.primaryBg} ring-4 ring-offset-2 ${themeStyle.ringColor} shadow-lg ${themeStyle.shadowColor}`
-              : `${themeStyle.primaryBg} ${themeStyle.primaryHover} shadow-md ${themeStyle.shadowColor}`
-          } ${selectedMode === 'play' ? 'opacity-70' : 'opacity-100'}`}
-        >
-          Belajar
-          <div
-            className={`absolute -top-1.5 -left-1.5 w-3 h-3 border-t-2 border-l-2 rounded-tl-xs pointer-events-none ${themeStyle.borderColor}`}
-          />
-        </motion.div>
-
-        {/* Sticker 2: "Bermain" */}
-        <motion.div
-          role="button"
-          tabIndex={0}
-          onClick={(e) => handleSelectMode(e, 'play')}
-          whileHover={{ scale: selectedMode === 'play' ? 1.05 : 1.03 }}
-          whileTap={{ scale: 0.94, y: 4 }}
-          initial={{ opacity: 0, y: -15, rotate: 6 }}
-          animate={{
-            opacity: 1,
-            y: selectedMode === 'play' ? 4 : 0,
-            rotate: selectedMode === 'play' ? 2 : 2.5,
-            scale: selectedMode === 'play' ? 1.05 : selectedMode === 'learn' ? 0.95 : 1,
+          transition={{
+            type: 'spring',
+            damping: 26,
+            stiffness: 120,
           }}
-          transition={{ type: 'spring', damping: 14, stiffness: 260, delay: selectedMode ? 0 : 0.15 }}
-          className={`relative mt-2 ml-10 inline-block text-white px-5 py-1.5 rounded-lg font-extrabold text-3xl tracking-tight transition-colors duration-200 cursor-pointer select-none ${
-            selectedMode === 'play'
-              ? `${themeStyle.primaryBg} ring-4 ring-offset-2 ${themeStyle.ringColor} shadow-lg ${themeStyle.shadowColor}`
-              : `${themeStyle.primaryBg} ${themeStyle.primaryHover} shadow-md ${themeStyle.shadowColor}`
-          } ${selectedMode === 'learn' ? 'opacity-70' : 'opacity-100'}`}
+          style={{ width: '300%' }}
+          className="flex pointer-events-auto"
         >
-          Bermain
-          <div className="absolute -bottom-2 -right-2 w-8 h-8 border border-dashed border-neutral-400/80 rounded-xs pointer-events-none" />
+          {/* SLIDE 0 UI: ONBOARDING / LAYAR AWAL */}
+          <div className="w-1/3 flex-shrink-0 px-6 max-w-sm mx-auto flex flex-col items-start relative">
+
+
+            {/* Sticker 1: "Belajar" */}
+            <motion.div
+              role="button"
+              tabIndex={0}
+              onClick={(e) => handleSelectMode(e, 'learn')}
+              whileHover={{ scale: selectedMode === 'learn' ? 1.05 : 1.03 }}
+              whileTap={{ scale: 0.94, y: 4 }}
+              initial={{ opacity: 0, y: -20, rotate: -8 }}
+              animate={{
+                opacity: 1,
+                y: selectedMode === 'learn' ? 4 : 0,
+                rotate: selectedMode === 'learn' ? -1.5 : -3.5,
+                scale: selectedMode === 'learn' ? 1.05 : selectedMode === 'play' ? 0.95 : 1,
+              }}
+              transition={{ type: 'spring', damping: 14, stiffness: 260 }}
+              className={`relative inline-block text-white px-5 py-1.5 rounded-lg font-extrabold text-3xl tracking-tight transition-colors duration-200 cursor-pointer select-none ${
+                selectedMode === 'learn'
+                  ? `${themeStyle.primaryBg} ring-4 ring-offset-2 ${themeStyle.ringColor} shadow-lg ${themeStyle.shadowColor}`
+                  : `${themeStyle.primaryBg} ${themeStyle.primaryHover} shadow-md ${themeStyle.shadowColor}`
+              } ${selectedMode === 'play' ? 'opacity-70' : 'opacity-100'}`}
+            >
+              Belajar
+              <div
+                className={`absolute -top-1.5 -left-1.5 w-3 h-3 border-t-2 border-l-2 rounded-tl-xs pointer-events-none ${themeStyle.borderColor}`}
+              />
+            </motion.div>
+
+            {/* Sticker 2: "Bermain" */}
+            <motion.div
+              role="button"
+              tabIndex={0}
+              onClick={(e) => handleSelectMode(e, 'play')}
+              whileHover={{ scale: selectedMode === 'play' ? 1.05 : 1.03 }}
+              whileTap={{ scale: 0.94, y: 4 }}
+              initial={{ opacity: 0, y: -15, rotate: 6 }}
+              animate={{
+                opacity: 1,
+                y: selectedMode === 'play' ? 4 : 0,
+                rotate: selectedMode === 'play' ? 2 : 2.5,
+                scale: selectedMode === 'play' ? 1.05 : selectedMode === 'learn' ? 0.95 : 1,
+              }}
+              transition={{ type: 'spring', damping: 14, stiffness: 260, delay: 0.1 }}
+              className={`relative mt-2 ml-10 inline-block text-white px-5 py-1.5 rounded-lg font-extrabold text-3xl tracking-tight transition-colors duration-200 cursor-pointer select-none ${
+                selectedMode === 'play'
+                  ? `${themeStyle.primaryBg} ring-4 ring-offset-2 ${themeStyle.ringColor} shadow-lg ${themeStyle.shadowColor}`
+                  : `${themeStyle.primaryBg} ${themeStyle.primaryHover} shadow-md ${themeStyle.shadowColor}`
+              } ${selectedMode === 'learn' ? 'opacity-70' : 'opacity-100'}`}
+            >
+              Bermain
+              <div className="absolute -bottom-2 -right-2 w-8 h-8 border border-dashed border-neutral-400/80 rounded-xs pointer-events-none" />
+            </motion.div>
+
+            {/* Subtitle Text */}
+            <div className="mt-5 min-h-[72px] flex flex-col justify-center w-full">
+              <AnimatePresence mode="wait">
+                {selectedMode === null ? (
+                  <motion.div
+                    key="default-text"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="text-neutral-800 leading-snug font-handwriting"
+                  >
+                    <span className="text-xl sm:text-2xl font-bold text-neutral-600 block">
+                      apa yang kamu mau lakukan hari ini,
+                    </span>
+                    <span className="text-3xl sm:text-4xl font-extrabold text-neutral-900 tracking-tight block mt-0.5">
+                      Budi? 🌟
+                    </span>
+                  </motion.div>
+                ) : selectedMode === 'learn' ? (
+                  <motion.div
+                    key="learn-text"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="text-neutral-800 leading-snug font-handwriting"
+                  >
+                    <span className="text-3xl sm:text-4xl font-extrabold text-neutral-900 tracking-tight block">
+                      ayo kita belajar
+                    </span>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="play-text"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="text-neutral-800 leading-snug font-handwriting"
+                  >
+                    <span className="text-3xl sm:text-4xl font-extrabold text-neutral-900 tracking-tight block">
+                      kamu yakin ingin bermain?
+                    </span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+
+          {/* SLIDE 1 UI: RUMAH CINCAU (Crystal Bowl Interior) */}
+          <div className="w-1/3 flex-shrink-0 px-6 max-w-sm mx-auto flex flex-col items-start relative">
+            {/* Header Text */}
+            <div className="text-neutral-800 leading-snug font-handwriting mb-2">
+              <span className="text-lg sm:text-xl font-bold text-amber-700 block">
+                selamat datang di
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-neutral-900 tracking-tight block mt-0.5">
+                Rumah Cincau! 🏡
+              </h2>
+            </div>
+
+          </div>
+
+          {/* SLIDE 2 UI: LUAR RUANGAN */}
+          <div className="w-1/3 flex-shrink-0 px-6 max-w-sm mx-auto flex flex-col items-start relative">
+            {/* Header Text */}
+            <div className="text-neutral-800 leading-snug font-handwriting mb-2">
+              <span className="text-lg sm:text-xl font-bold text-emerald-800 block">
+                petualangan di
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-emerald-950 tracking-tight block mt-0.5">
+                Luar Ruangan! 🌳
+              </h2>
+            </div>
+          </div>
         </motion.div>
+      </div>
 
-        {/* Dynamic subtitle text */}
-        <div className="mt-5 min-h-[72px] flex flex-col justify-center w-full">
-          <AnimatePresence mode="wait">
-            {selectedMode === null && (
-              <motion.div
-                key="default"
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -14 }}
-                transition={{ duration: 0.35, ease: 'easeOut' }}
-                className="text-neutral-800 leading-snug font-handwriting"
-              >
-                <span className="text-xl sm:text-2xl font-bold text-neutral-600 block">
-                  apa yang kamu mau lakukan hari ini,
-                </span>
-                <span className="text-3xl sm:text-4xl font-extrabold text-neutral-900 tracking-tight block mt-0.5">
-                  Budi? 🌟
-                </span>
-              </motion.div>
-            )}
-
-            {selectedMode === 'learn' && (
-              <motion.div
-                key="learn"
-                initial={{ opacity: 0, y: 18 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -14 }}
-                transition={{ duration: 0.35, ease: 'easeOut' }}
-                className="text-neutral-800 leading-snug font-handwriting"
-              >
-                <span className="text-3xl sm:text-4xl font-extrabold text-neutral-900 tracking-tight block">
-                  ayo kita belajar
-                </span>
-              </motion.div>
-            )}
-
-            {selectedMode === 'play' && (
-              <motion.div
-                key="play"
-                initial={{ opacity: 0, y: 18 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -14 }}
-                transition={{ duration: 0.35, ease: 'easeOut' }}
-                className="text-neutral-800 leading-snug font-handwriting"
-              >
-                <span className="text-3xl sm:text-4xl font-extrabold text-neutral-900 tracking-tight block">
-                  kamu yakin ingin bermain?
-                </span>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </motion.div>
-
-      {/* FEEDING OVERLAY COMPONENT */}
+      {/* 5. FEEDING OVERLAY COMPONENT */}
       <CincauFeedingOverlay
         isMenuOpen={isBubbleMenuOpen}
         isFeedingOpen={isFeedingOpen}
@@ -395,7 +456,6 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
         onFeedSuccess={(food, speech) => {
           if (emotionTimerRef.current) clearTimeout(emotionTimerRef.current);
           setMascotEmotionOverride('excited');
-          setFoodStock((f) => Math.max(0, f - 1));
           emotionTimerRef.current = setTimeout(() => {
             setMascotEmotionOverride('idle');
           }, 8000);
@@ -415,12 +475,12 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
         mascotContainerRef={mascotContainerRef}
       />
 
-      {/* CINCAU MASCOT EMERGING FROM THE BOTTOM */}
+      {/* 6. FOREGROUND PERSISTENT MASCOT WITH BOUNCE JUMP ON SLIDE */}
       <div
         ref={mascotContainerRef}
         onClick={handleCincauTap}
         onTouchEnd={handleCincauTap}
-        className="relative w-full flex-1 flex flex-col justify-end items-center pointer-events-auto cursor-pointer"
+        className="relative w-full flex-1 flex flex-col justify-end items-center pointer-events-auto cursor-pointer z-10"
       >
         {!isBubbleMenuOpen && !isFeedingOpen && (
           <motion.div
@@ -434,16 +494,11 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
           </motion.div>
         )}
 
+
         <motion.div
-          initial={{ y: '100%', opacity: 0 }}
-          animate={{ y: '0%', opacity: 1 }}
-          transition={{
-            type: 'spring',
-            damping: 18,
-            stiffness: 90,
-            mass: 1.1,
-            delay: 0.1,
-          }}
+          key={`mascot-bounce-${bounceKey}`}
+          animate={{ y: [0, -32, 0] }}
+          transition={{ duration: 0.48, ease: [0.175, 0.885, 0.32, 1.275] }}
           className="w-full max-w-[340px] sm:max-w-[380px] -mb-1"
         >
           <CharviMascot
@@ -456,7 +511,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
           />
         </motion.div>
 
-        {/* Floating Action Bar overlaying the bottom character */}
+        {/* 7. CONTEXTUAL NAVIGATION ACTION BUTTON */}
         <motion.div
           onClick={(e) => e.stopPropagation()}
           animate={{
@@ -467,70 +522,9 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
           transition={{ duration: 0.25 }}
           className="absolute bottom-6 w-full px-6 flex flex-col items-center gap-3 z-30 max-w-sm"
         >
-          {/* Main Action Button */}
-          <button
-            onClick={handleStartAction}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-            className={`w-full py-3.5 px-6 rounded-full font-bold text-base shadow-xl transition-all duration-200 flex items-center justify-center gap-2 group cursor-pointer ${
-              selectedMode
-                ? `${themeStyle.primaryBg} ${themeStyle.primaryHover} text-white ${themeStyle.shadowColor} active:scale-[0.98]`
-                : 'bg-neutral-900 hover:bg-black text-white shadow-black/15 active:scale-[0.98]'
-            }`}
-          >
-            <AnimatePresence mode="wait">
-              <motion.span
-                key={selectedMode || 'default'}
-                initial={{ opacity: 0, y: 5 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -5 }}
-                transition={{ duration: 0.2 }}
-              >
-                {selectedMode === 'learn'
-                  ? 'Mulai Belajar'
-                  : selectedMode === 'play'
-                  ? 'Mulai Bermain'
-                  : 'Mulai Petualangan'}
-              </motion.span>
-            </AnimatePresence>
-            <ArrowRight className="w-4 h-4 text-white group-hover:translate-x-1 transition-transform" />
-          </button>
+
         </motion.div>
       </div>
-
-      {/* OVERLAY MODALS DIRECTLY ON SCREEN 1 */}
-      {/* 1. Kurikulum Merdeka Quiz Mission Modal */}
-      {activeQuizMission && (
-        <CincauMissionQuizModal
-          mission={activeQuizMission}
-          onClose={() => setActiveQuizMission(null)}
-          onComplete={(missionId, earnedFood, earnedStars) => {
-            setFoodStock((f) => f + earnedFood);
-            setStarPoints((s) => s + earnedStars);
-            setActiveQuizMission(null);
-            setMascotEmotionOverride('happy');
-          }}
-        />
-      )}
-
-      {/* 2. Educational Games Modal */}
-      {activeGame && (
-        <CincauGameModal
-          game={activeGame}
-          onClose={() => setActiveGame(null)}
-          onGameWin={(stars) => {
-            setStarPoints((s) => s + stars);
-          }}
-        />
-      )}
-
-      {/* 3. AI Chat Modal */}
-      {isAiOpen && (
-        <CharviAiChat
-          mascotTheme={mascotTheme}
-          onClose={() => setIsAiOpen(false)}
-        />
-      )}
     </div>
   );
 };

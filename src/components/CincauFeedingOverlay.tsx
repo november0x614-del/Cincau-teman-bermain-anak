@@ -726,10 +726,10 @@ export const CincauFeedingOverlay: React.FC<CincauFeedingOverlayProps> = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.9 }}
             transition={{ type: 'spring', damping: 18, stiffness: 260 }}
-            className="absolute bottom-[350px] sm:bottom-[390px] left-1/2 -translate-x-1/2 z-40 max-w-[280px] px-4 py-2.5 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border-2 border-amber-200 text-center pointer-events-none"
+            className="absolute bottom-24 left-1/2 -translate-x-1/2 z-40 max-w-[280px] px-4 py-2.5 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border-2 border-amber-200 text-center pointer-events-auto"
           >
-            {/* Bubble pointer */}
-            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45 border-r-2 border-b-2 border-amber-200" />
+            {/* Bubble pointer at the TOP pointing up to Cincau */}
+            <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45 border-l-2 border-t-2 border-amber-200" />
             <p className="text-xs sm:text-sm font-extrabold text-neutral-800 leading-snug">
               {cincauSpeech}
             </p>

@@ -1,73 +1,159 @@
 import React from 'react';
+import { motion } from 'motion/react';
 
-export const OnboardingBackground: React.FC = () => (
-  <div className="absolute inset-0 bg-linear-to-b from-sky-50 via-white to-white overflow-hidden">
-    {/* Floating clouds/blobs */}
-    <div className="absolute top-20 -left-10 w-40 h-40 bg-sky-100/50 rounded-full blur-3xl animate-pulse" />
-    <div className="absolute top-40 -right-10 w-60 h-60 bg-indigo-50/50 rounded-full blur-3xl" />
-    <div className="absolute bottom-20 left-1/4 w-32 h-32 bg-sky-50/80 rounded-full blur-2xl" />
-  </div>
-);
+interface HabitatWorldsProps {
+  viewIndex: number; // 0: Onboarding, 1: Home, 2: Outdoor
+}
 
-export const HomeBackground: React.FC = () => (
-  <div className="absolute inset-0 bg-amber-50 overflow-hidden">
-    {/* Giant Crystal Bowl SVG */}
-    <svg className="absolute inset-0 w-full h-full" viewBox="0 0 430 880" fill="none" preserveAspectRatio="xMidYMid slice">
-      {/* Bowl background base */}
-      <rect width="430" height="880" fill="#fffbeb" />
-      
-      {/* Bowl Rim */}
-      <path d="M-50 420 Q 215 370 480 420" stroke="#fde68a" strokeWidth="12" strokeLinecap="round" opacity="0.6" />
-      
-      {/* Honey Glow Lamp */}
-      <circle cx="350" cy="150" r="100" fill="url(#honeyGlow)" opacity="0.5" />
-      <defs>
-        <radialGradient id="honeyGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(350 150) rotate(90) scale(100)">
-          <stop stopColor="#fbbf24" />
-          <stop offset="1" stopColor="#fbbf24" stopOpacity="0" />
-        </radialGradient>
-      </defs>
+export const HabitatWorlds: React.FC<HabitatWorldsProps> = ({ viewIndex }) => {
+  return (
+    <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none">
+      <motion.div
+        animate={{ x: `${-(viewIndex * 100) / 3}%` }}
+        transition={{ type: 'spring', damping: 26, stiffness: 120 }}
+        className="flex h-full w-[300%]"
+      >
+        {/* DUNIA 0: ONBOARDING (Soft clouds and floating jelly-bits) */}
+        <div className="w-1/3 h-full relative bg-white overflow-hidden flex-shrink-0">
+          <div className="absolute inset-0 bg-gradient-to-b from-sky-50/70 via-amber-50/30 to-emerald-50/40" />
 
-      {/* Leaf Study Desk Detail */}
-      <g transform="translate(40, 520) scale(0.9)">
-        <path d="M0 40 Q 150 0 300 40 Q 300 120 150 160 Q 0 120 0 40Z" fill="#34d399" fillOpacity="0.2" stroke="#059669" strokeWidth="3" />
-        <path d="M40 60 L 140 60 M 40 85 L 120 85" stroke="#059669" strokeWidth="3" strokeLinecap="round" opacity="0.4" />
-      </g>
+          {/* Sunbeams */}
+          <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[320px] h-[320px] bg-gradient-radial from-amber-200/40 via-sky-100/20 to-transparent rounded-full blur-2xl animate-pulse" />
 
-      {/* Star Trophy Shelf */}
-      <g transform="translate(280, 480)">
-        <rect x="0" y="0" width="120" height="6" rx="3" fill="#9ca3af" opacity="0.6" />
-        <path d="M40 -20 L 45 -10 L 55 -10 L 47 -2 L 50 8 L 40 2 L 30 8 L 33 -2 L 25 -10 L 35 -10 Z" fill="#f59e0b" opacity="0.8" />
-        <path d="M80 -25 L 85 -15 L 95 -15 L 87 -7 L 90 3 L 80 -3 L 70 3 L 73 -7 L 65 -15 L 75 -15 Z" fill="#f59e0b" opacity="0.6" />
-      </g>
-    </svg>
-    
-    <div className="absolute top-0 left-0 w-full h-1/2 bg-radial-[at_50%_0%] from-amber-200/20 to-transparent pointer-events-none" />
-  </div>
-);
+          {/* Floating Jelly Clouds */}
+          <motion.div
+            animate={{ y: [0, -8, 0], x: [0, 4, 0] }}
+            transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut' }}
+            className="absolute top-16 left-6 w-28 h-12 bg-sky-100/60 rounded-full blur-md border border-white/70 shadow-xs"
+          />
+          <motion.div
+            animate={{ y: [0, -10, 0], x: [0, -5, 0] }}
+            transition={{ repeat: Infinity, duration: 7, ease: 'easeInOut', delay: 1 }}
+            className="absolute top-24 right-8 w-36 h-14 bg-amber-100/50 rounded-full blur-md border border-white/60 shadow-xs"
+          />
 
-export const OutdoorBackground: React.FC = () => (
-  <div className="absolute inset-0 bg-emerald-50 overflow-hidden">
-    {/* Tropical Jungle SVG */}
-    <svg className="absolute inset-0 w-full h-full" viewBox="0 0 430 880" fill="none" preserveAspectRatio="xMidYMid slice">
-      <rect width="430" height="880" fill="#f0fdf4" />
-      
-      {/* Sunlight Beams */}
-      <path d="M-100 -50 L 250 880" stroke="white" strokeWidth="150" strokeOpacity="0.1" />
-      <path d="M150 -50 L 500 880" stroke="white" strokeWidth="100" strokeOpacity="0.08" />
+          {/* Floating Jelly Bits */}
+          <div className="absolute top-1/3 left-10 text-amber-400 text-lg animate-bounce">✨</div>
+          <div className="absolute top-1/2 right-12 text-cyan-400 text-base animate-pulse">🌟</div>
+          <div className="absolute top-2/3 left-16 text-emerald-400 text-sm animate-ping [animation-delay:1.5s]">💫</div>
+        </div>
 
-      {/* Giant Fern Leaves */}
-      <g transform="translate(-60, 120) rotate(-10)">
-        <path d="M0 0 Q 180 -60 350 120 M 0 0 Q 180 60 350 120" fill="#10b981" fillOpacity="0.15" stroke="#047857" strokeWidth="1" />
-        <path d="M0 0 L 350 120" stroke="#047857" strokeWidth="2" strokeOpacity="0.3" />
-      </g>
+        {/* DUNIA 1: RUMAH CINCAU (Giant Crystal Bowl interior, Leaf-study desk, Glowing star shelves) */}
+        <div className="w-1/3 h-full relative bg-white overflow-hidden flex-shrink-0">
+          <div className="absolute inset-0 bg-gradient-to-b from-amber-100/70 via-amber-50/50 to-emerald-50/40" />
 
-      <g transform="translate(220, 250) rotate(5) scale(1.3)">
-        <path d="M0 0 Q 140 -90 280 60 M 0 0 Q 140 30 280 60" fill="#34d399" fillOpacity="0.12" stroke="#065f46" strokeWidth="1" />
-        <path d="M0 0 L 280 60" stroke="#065f46" strokeWidth="2" strokeOpacity="0.3" />
-      </g>
-    </svg>
-    
-    <div className="absolute bottom-0 left-0 w-full h-1/3 bg-radial-[at_50%_100%] from-emerald-200/30 to-transparent pointer-events-none" />
-  </div>
-);
+          {/* Giant Crystal Bowl Wall Rim */}
+          <div className="absolute inset-x-0 top-0 h-[65%] bg-gradient-radial from-amber-200/50 via-amber-100/30 to-transparent blur-lg" />
+          <div className="absolute top-6 left-1/2 -translate-x-1/2 w-[92%] h-[78%] border-t-8 border-amber-300/40 rounded-t-full blur-[1px] shadow-inner" />
+
+          {/* Arched Window in the Center showing Outside Nature */}
+          <div className="absolute top-10 left-1/2 -translate-x-1/2 w-36 h-24 bg-sky-100/80 rounded-t-full border-4 border-amber-200 shadow-md flex items-center justify-center overflow-hidden">
+            <div className="w-full h-full bg-gradient-to-b from-sky-200/90 to-emerald-100/70 relative">
+              <span className="absolute top-2 left-3 text-xs">☁️</span>
+              <span className="absolute top-1 right-3 text-xs">☀️</span>
+            </div>
+          </div>
+
+          {/* Leaf Study Desk Silhouette on Left */}
+          <div className="absolute bottom-28 left-4 w-36 h-20 bg-emerald-200/50 rounded-2xl border-2 border-emerald-300/60 shadow-xs backdrop-blur-xs flex items-center justify-center">
+            <div className="text-xs text-emerald-900 font-extrabold flex items-center gap-1">
+              <span>📖</span>
+              <span>Meja Belajar</span>
+            </div>
+          </div>
+
+          {/* Glowing Star Shelves on Right */}
+          <div className="absolute bottom-40 right-4 w-32 h-24 bg-amber-100/60 rounded-2xl border-2 border-amber-300/70 p-2.5 flex flex-col justify-between shadow-xs">
+            <span className="text-[10px] font-black text-amber-900">Rak Bintang ⭐</span>
+            <div className="flex gap-1.5 text-sm">
+              <span>⭐</span>
+              <span>🥣</span>
+              <span>🌟</span>
+            </div>
+          </div>
+
+          {/* Firefly Lanterns */}
+          <div className="absolute top-20 left-10 w-4 h-4 bg-amber-400/90 rounded-full blur-xs animate-ping" />
+          <div className="absolute top-28 right-10 w-3.5 h-3.5 bg-yellow-300/90 rounded-full blur-xs animate-ping [animation-delay:1.2s]" />
+        </div>
+
+        {/* DUNIA 2: LUAR RUANGAN (SWAYING NATURE & BREATHING JUNGLE) */}
+        <div className="w-1/3 h-full relative bg-white overflow-hidden flex-shrink-0">
+          <div className="absolute inset-0 bg-gradient-to-b from-emerald-100/80 via-teal-50/50 to-lime-100/60" />
+
+          {/* 1. Pulsing Sunbeams in Canopy */}
+          <motion.div
+            animate={{
+              opacity: [0.35, 0.7, 0.35],
+              scale: [0.95, 1.05, 0.95],
+            }}
+            transition={{ repeat: Infinity, duration: 4.5, ease: 'easeInOut' }}
+            className="absolute -top-16 left-1/4 w-72 h-72 bg-gradient-radial from-amber-200/60 via-lime-100/30 to-transparent rounded-full blur-2xl"
+          />
+
+          {/* 2. Swaying Giant Emerald Leaves (Left Corner Leaf) */}
+          <motion.div
+            animate={{
+              rotate: [-5, 6, -5],
+              scale: [1, 1.03, 1],
+            }}
+            transition={{ repeat: Infinity, duration: 5.2, ease: 'easeInOut' }}
+            style={{ transformOrigin: 'bottom left' }}
+            className="absolute -bottom-8 -left-12 w-64 h-64 bg-emerald-400/30 rounded-[60%_40%_70%_30%] blur-xl border-t-4 border-emerald-300/40"
+          />
+
+          {/* 3. Swaying Giant Emerald Leaves (Right Canopy Leaf) */}
+          <motion.div
+            animate={{
+              rotate: [4, -5, 4],
+              scale: [1, 1.04, 1],
+            }}
+            transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut', delay: 0.5 }}
+            style={{ transformOrigin: 'top right' }}
+            className="absolute -top-10 -right-16 w-80 h-80 bg-lime-400/30 rounded-[40%_60%_30%_70%] blur-2xl border-b-4 border-lime-300/40"
+          />
+
+          {/* 4. Dripping Dew Drop Animation */}
+          <motion.div
+            animate={{
+              y: [0, 80],
+              opacity: [0, 1, 0],
+              scale: [0.6, 1, 0.4],
+            }}
+            transition={{ repeat: Infinity, duration: 3.8, ease: 'easeIn', delay: 1 }}
+            className="absolute top-28 left-16 w-2.5 h-3.5 bg-sky-200 rounded-full border border-white shadow-xs"
+          />
+
+          {/* 5. Fluttering Forest Butterfly Animation */}
+          <motion.div
+            animate={{
+              x: [0, 25, -15, 0],
+              y: [0, -30, -15, 0],
+              rotate: [-8, 12, -6, -8],
+            }}
+            transition={{ repeat: Infinity, duration: 7, ease: 'easeInOut' }}
+            className="absolute top-1/3 right-1/4 text-lg filter drop-shadow-sm select-none"
+          >
+            🦋
+          </motion.div>
+
+
+          {/* 7. Organic Swaying Jungle Foliage SVG Overlay */}
+          <motion.svg
+            animate={{
+              y: [0, -4, 0],
+              skewX: [-1.5, 1.5, -1.5],
+            }}
+            transition={{ repeat: Infinity, duration: 4.8, ease: 'easeInOut' }}
+            className="absolute bottom-0 left-0 w-full h-1/2 opacity-20 text-emerald-950"
+            viewBox="0 0 400 200"
+          >
+            <path d="M-50,200 Q50,40 150,200 Z" fill="currentColor" />
+            <path d="M80,200 Q180,60 280,200 Z" fill="currentColor" />
+            <path d="M220,200 Q320,80 420,200 Z" fill="currentColor" />
+          </motion.svg>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
